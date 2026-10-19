@@ -1,0 +1,13 @@
+# Binaries
+bin/
+*.exe
+*.test
+
+# Coverage & profiling files
+*.out
+*.pprof
+
+# OS & Editor
+.DS_Store
+.idea/
+.vscode/
