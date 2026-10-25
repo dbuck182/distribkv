@@ -103,7 +103,6 @@ func (r *Reader) readBulkString() (response Value, err error) {
 	// First have to readline in order to get the length of the following
 	// Then we can use the read certain number of bytes to get our string
 	// set it equal to the bulkstring and return
-
 	bytes, err := r.readLine()
 	if err != nil {
 		return Value{}, err
