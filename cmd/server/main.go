@@ -1,7 +1,6 @@
 package main
 
 import (
-	"bufio"
 	"flag"
 	"fmt"
 	"log"
@@ -10,6 +9,7 @@ import (
 	"time"
 
 	"github.com/dbuck182/distribkv/internal/engine"
+	"github.com/dbuck182/distribkv/internal/resp"
 )
 
 func main() {
@@ -43,9 +43,9 @@ func main() {
 
 func handleConnection(conn net.Conn) {
 	defer conn.Close()
-	reader := bufio.NewReader(conn)
+	reader := resp.NewReader(conn)
 	for {
-		message, err := reader.ReadString('\n')
+		message, err := reader.Read()
 		if err != nil {
 			log.Printf("Read error: %v", err)
 			return
