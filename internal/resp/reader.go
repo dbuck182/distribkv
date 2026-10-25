@@ -57,8 +57,13 @@ func (r *Reader) readArray() (response Value, err error) {
 	if err != nil {
 		return Value{}, err
 	}
-	loops, err := strconv.Atoi(string(message))
-	arr_vals := Value{Typ: '*', Array: make([]Value, 0, loops)}
+	stripped_mess, err := stripCRLF(string(message))
+	if err != nil {
+		return Value{}, err
+	}
+	loops, err := strconv.Atoi(stripped_mess)
+	print("LENGTH: ", loops)
+	arr_vals := Value{Typ: '*', Array: make([]Value, loops)}
 	for index := range loops {
 		// Go through each section
 		message, err := r.rd.ReadByte()
@@ -69,28 +74,33 @@ func (r *Reader) readArray() (response Value, err error) {
 		case '+':
 			resp, err := r.readSimpleString()
 			if err != nil {
-				arr_vals.Array[index] = resp
+				return Value{}, fmt.Errorf("[ARRAY] %w", err)
 			}
+			arr_vals.Array[index] = resp
 		case '$':
 			resp, err := r.readBulkString()
 			if err != nil {
-				arr_vals.Array[index] = resp
+				return Value{}, fmt.Errorf("[ARRAY] %w", err)
 			}
+			arr_vals.Array[index] = resp
 		case '*':
 			resp, err := r.readArray()
 			if err != nil {
-				arr_vals.Array[index] = resp
+				return Value{}, fmt.Errorf("[ARRAY] %w", err)
 			}
+			arr_vals.Array[index] = resp
 		case '-':
 			resp, err := r.readError()
 			if err != nil {
-				arr_vals.Array[index] = resp
+				return Value{}, fmt.Errorf("[ARRAY] %w", err)
 			}
+			arr_vals.Array[index] = resp
 		case ':':
 			resp, err := r.readInteger()
 			if err != nil {
-				arr_vals.Array[index] = resp
+				return Value{}, fmt.Errorf("[ARRAY] %w", err)
 			}
+			arr_vals.Array[index] = resp
 		default:
 			return Value{}, fmt.Errorf("Unknown resp prefix: %q", message)
 		}
@@ -107,9 +117,13 @@ func (r *Reader) readBulkString() (response Value, err error) {
 	if err != nil {
 		return Value{}, err
 	}
+	print("GOT HERE!!**********")
 	bytes_num, err := strconv.Atoi(bytes)
 	if err != nil {
 		return Value{}, err
+	}
+	if bytes_num == -1 {
+		return Value{Typ: '$', Bulk: ""}, nil
 	}
 	// Now we will read until we get that number of bytes
 	buf := make([]byte, bytes_num)
@@ -118,11 +132,14 @@ func (r *Reader) readBulkString() (response Value, err error) {
 	if err != nil {
 		return Value{}, err
 	}
-	// Now strip the crlf and all set
-	str, err := stripCRLF(string(buf))
-	if err != nil {
+
+	str := string(buf)
+
+	// before we return remove crlf
+	if _, err := r.readLine(); err != nil {
 		return Value{}, err
 	}
+
 	return Value{Typ: '$', Bulk: str}, nil
 }
 
@@ -140,7 +157,11 @@ func (r *Reader) readInteger() (response Value, err error) {
 	if err != nil {
 		return Value{}, err
 	}
-	resp := Value{Typ: ':', Str: trimmed_message}
+	num, err := strconv.Atoi(trimmed_message)
+	if err != nil {
+		return Value{}, err
+	}
+	resp := Value{Typ: ':', Num: int64(num)}
 	return resp, nil
 }
 
