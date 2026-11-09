@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"log"
 	"net"
-	"strings"
 	"time"
 
 	"github.com/dbuck182/distribkv/internal/engine"
@@ -50,8 +49,11 @@ func handleConnection(conn net.Conn) {
 			log.Printf("Read error: %v", err)
 			return
 		}
+		// Now we got the message so run the actual logic
+		response := HandleCommand()
 
-		msg := strings.ToUpper(strings.TrimSpace(message))
+		//Writer.write
+
 		response := fmt.Sprintf("ACK: %s\n", msg)
 		_, err = conn.Write([]byte(response))
 		if err != nil {
