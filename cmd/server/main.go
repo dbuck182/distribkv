@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/dbuck182/distribkv/internal/engine"
+	"github.com/dbuck182/distribkv/internal/handler"
 	"github.com/dbuck182/distribkv/internal/resp"
 )
 
@@ -49,13 +50,17 @@ func handleConnection(conn net.Conn) {
 			log.Printf("Read error: %v", err)
 			return
 		}
+		log.Printf("GETIING HERE")
 		// Now we got the message so run the actual logic
-		response := HandleCommand()
+		var response handler.CommandResponse = handler.HandleCommand(message)
 
-		//Writer.write
+		if response.E != nil {
+			log.Printf("Server write error: %v", err)
+		}
+		//Writer.write: need to add the functionality to return resp
 
-		response := fmt.Sprintf("ACK: %s\n", msg)
-		_, err = conn.Write([]byte(response))
+		// response := fmt.Sprintf("ACK: %s\n", msg)
+		_, err = conn.Write([]byte(response.Message))
 		if err != nil {
 			log.Printf("Server write error: %v", err)
 		}

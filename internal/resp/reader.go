@@ -117,7 +117,6 @@ func (r *Reader) readBulkString() (response Value, err error) {
 	if err != nil {
 		return Value{}, err
 	}
-	print("GOT HERE!!**********")
 	bytes_num, err := strconv.Atoi(bytes)
 	if err != nil {
 		return Value{}, err
@@ -166,7 +165,6 @@ func (r *Reader) readInteger() (response Value, err error) {
 }
 
 func (r *Reader) readSimpleString() (response Value, err error) {
-
 	trimmed_message, err := r.readLine()
 	if err != nil {
 		return Value{}, err
